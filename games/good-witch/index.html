@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Good Witch</title>
+  <meta name="description" content="Help the good witch fire fireballs at the monsters chasing her.">
+  <style>
+    :root {
+      --night-1: #120a24;
+      --night-2: #2b1650;
+      --text: #fbf6ff;
+      --muted: #c9b9e8;
+      --accent: #a77bff;
+      --fire: #ff7a29;
+      --panel: rgba(20, 10, 40, 0.86);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; overflow: hidden;
+      background: var(--night-1); color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-user-select: none; user-select: none;
+      touch-action: none;
+    }
+    canvas { display: block; position: fixed; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+
+    .hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 16px;
+      font-weight: 700; font-size: 16px;
+      pointer-events: none;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .hud .grow { flex: 1; }
+    .hud a, .hud button { pointer-events: auto; }
+    .hud-btn {
+      background: rgba(255,255,255,0.12); color: var(--text);
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 999px;
+      padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; text-decoration: none;
+    }
+    .hud-btn:hover { background: rgba(255,255,255,0.22); }
+    #hearts { letter-spacing: 2px; }
+
+    .overlay {
+      position: fixed; inset: 0; display: flex;
+      padding: 16px; background: rgba(10, 5, 25, 0.55);
+      overflow-y: auto; touch-action: pan-y;
+    }
+    .overlay[hidden] { display: none; }
+    .panel {
+      background: var(--panel); border: 1px solid rgba(167,123,255,0.4);
+      border-radius: 20px; padding: 20px 22px; max-width: 460px; width: 100%; margin: auto;
+      text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .panel h1 { margin: 0 0 4px; font-size: 2.2rem; }
+    .panel .big { font-size: 56px; line-height: 1.1; }
+    .panel p { color: var(--muted); margin: 8px 0; }
+    .panel ul { text-align: left; color: var(--muted); padding-left: 20px; margin: 10px 0 16px; font-size: 0.92rem; }
+    .panel li { margin: 3px 0; }
+    .play-btn {
+      background: linear-gradient(135deg, var(--accent), var(--fire));
+      color: #fff; border: 0; border-radius: 999px;
+      padding: 12px 32px; font: inherit; font-weight: 700; font-size: 1.1rem; cursor: pointer;
+    }
+    .play-btn:hover { filter: brightness(1.1); }
+    .home-link { display: inline-block; margin-top: 14px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div class="hud">
+    <a class="hud-btn" href="../../index.html">← Home</a>
+    <span id="hearts"></span>
+    <span class="grow"></span>
+    <span>Wave <span id="wave">1</span></span>
+    <span>Score <span id="score">0</span></span>
+    <button class="hud-btn" id="pauseBtn" type="button">Pause</button>
+  </div>
+
+  <div class="overlay" id="startScreen">
+    <div class="panel">
+      <div class="big">🧙‍♀️🔥</div>
+      <h1>Good Witch</h1>
+      <p>Monsters leap into the forest and chase the good witch! Help her fight back.</p>
+      <ul>
+        <li><b>Move:</b> W A S D or the arrow keys. On a phone, drag on the left side.</li>
+        <li><b>Fireball:</b> hold the mouse to aim, like pulling back a bow. Hold longer for a stronger, faster shot, then let go to fire. On a phone, hold on the right side.</li>
+        <li>Each monster has ❤️ hearts. Every hit takes one away.</li>
+        <li>Watch out: 🦇 bats and 👻 ghosts can <b>dodge</b>! Trees block fireballs.</li>
+        <li>Press <b>P</b> to pause.</li>
+      </ul>
+      <button class="play-btn" id="startBtn" type="button">Start</button>
+      <p id="bestStart"></p>
+    </div>
+  </div>
+
+  <div class="overlay" id="pauseScreen" hidden>
+    <div class="panel">
+      <h1>Paused</h1>
+      <p>Take a break, the monsters are waiting.</p>
+      <button class="play-btn" id="resumeBtn" type="button">Resume</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overScreen" hidden>
+    <div class="panel">
+      <div class="big">💫</div>
+      <h1>Game Over</h1>
+      <p id="finalScore"></p>
+      <p id="bestOver"></p>
+      <button class="play-btn" id="againBtn" type="button">Play Again</button><br>
+      <a class="home-link" href="../../index.html">Back to Amygames</a>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

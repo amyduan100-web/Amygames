@@ -1,0 +1,101 @@
+:root {
+  --bg: #f6f1ff;
+  --surface: #ffffff;
+  --text: #2a1f3d;
+  --muted: #6b5f80;
+  --accent: #7b3fe4;
+  --accent-2: #ff7a29;
+  --border: #e3d9f5;
+  --shadow: 0 6px 20px rgba(60, 30, 110, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15101f;
+    --surface: #221a33;
+    --text: #f1eaff;
+    --muted: #b3a6cc;
+    --accent: #a77bff;
+    --accent-2: #ff9a52;
+    --border: #3a2d52;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15101f;
+  --surface: #221a33;
+  --text: #f1eaff;
+  --muted: #b3a6cc;
+  --accent: #a77bff;
+  --accent-2: #ff9a52;
+  --border: #3a2d52;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+a { color: var(--accent); }
+
+.site-header {
+  text-align: center;
+  padding: 48px 16px 24px;
+}
+.site-header h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  letter-spacing: -0.02em;
+}
+.site-header h1 span { color: var(--accent); }
+.site-header p { margin: 8px 0 0; color: var(--muted); }
+
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 64px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.card .thumb {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+  background: linear-gradient(135deg, #2b1650, #5a2a8f 60%, #ff7a29);
+}
+.card .body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.card h2 { margin: 0 0 6px; font-size: 1.25rem; }
+.card p { margin: 0 0 16px; color: var(--muted); flex: 1; }
+.card.soon .thumb { background: var(--border); }
+
+.btn {
+  display: inline-block;
+  text-align: center;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn[aria-disabled="true"] { background: var(--muted); cursor: default; }
+
+.site-footer { text-align: center; color: var(--muted); padding: 0 16px 32px; font-size: 0.9rem; }
