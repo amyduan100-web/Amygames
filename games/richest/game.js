@@ -395,7 +395,7 @@
     const html = `${ride && !asleep && view !== "house" ? `<span class="ride">${ride}</span>` : ""}<span class="kid">🧒</span>${pet}`;
     const el = meEl();
     if (!el) return;
-    el.innerHTML = html;
+    if (el.dataset.html !== html) { el.dataset.html = html; el.innerHTML = html; }
     el.classList.toggle("sleeping", asleep);
     const p = posNow();
     el.style.left = `${p.x}%`;
@@ -407,26 +407,31 @@
     const h12 = h % 12 === 0 ? 12 : h % 12;
     return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
   }
+  // Only change text when it's different (so the emoji pictures don't get rebuilt all the time)
+  function setText(id, t) {
+    const el = $(id);
+    if (el.dataset.t !== t) { el.dataset.t = t; el.textContent = t; }
+  }
   function renderHud() {
-    $("dayLabel").textContent = `Day ${s.day}`;
-    $("clock").textContent = `${s.time >= 20 * 60 ? "🌙" : "☀️"} ${clockText(s.time)}`;
-    $("coins").textContent = money(s.coins);
-    $("rank").textContent = `🏆 #${rank()}`;
+    setText("dayLabel", `Day ${s.day}`);
+    setText("clock", `${s.time >= 20 * 60 ? "🌙" : "☀️"} ${clockText(s.time)}`);
+    setText("coins", money(s.coins));
+    setText("rank", `🏆 #${rank()}`);
     const items = s.cans + [...FOODS, ...PET_ITEMS].reduce((n, f) => n + (s.bag[f.id] || 0), 0);
     $("needPet").hidden = !s.pet;
     if (s.pet) {
-      $("petIcon").textContent = PETS[s.pet.type].icon;
+      setText("petIcon", PETS[s.pet.type].icon);
       setBar("Pet", s.pet.food);
-      $("petFun").textContent = s.pet.fun <= 25 ? "😢 bored" : "💛";
+      setText("petFun", s.pet.fun <= 25 ? "😢 bored" : "💛");
     }
-    $("bag").textContent = bagWithMe() ? `🎒 Backpack (${items})` : "🎒 Backpack is at home 🏠";
+    setText("bag", bagWithMe() ? `🎒 Backpack (${items})` : "🎒 Backpack is at home 🏠");
     setBar("Hunger", s.hunger);
     setBar("Energy", s.energy);
-    $("fullIcon").textContent = fullNow() ? "😋 full" : "";
+    setText("fullIcon", fullNow() ? "😋 full" : "");
     setBar("Clean", s.clean);
     const jobs = myJobs();
     const title = s.title ? `${TITLES[s.title].icon} ${TITLES[s.title].name} · ` : "";
-    $("jobLabel").textContent = jobs.length || title ? `${title}💼 ${jobs.map((j) => `${j.icon} ${j.name}`).join(", ") || "no job"}` : "💼 No job yet";
+    setText("jobLabel", jobs.length || title ? `${title}💼 ${jobs.map((j) => `${j.icon} ${j.name}`).join(", ") || "no job"}` : "💼 No job yet");
     for (const el of [town, street, house]) {
       el.classList.toggle("evening", s.time >= 19 * 60 && s.time < 21 * 60);
       el.classList.toggle("night", s.time >= 21 * 60);
@@ -438,7 +443,7 @@
     bar.style.background = v > 50 ? "var(--good)" : v > 25 ? "var(--gold)" : "var(--bad)";
     $(`need${name}`).classList.toggle("low", v <= 25);
   }
-  function say(text) { $("msg").textContent = text; }
+  function say(text) { setText("msg", text); }
   function floatText(text, at, parent) {
     const f = document.createElement("div");
     f.className = "float";

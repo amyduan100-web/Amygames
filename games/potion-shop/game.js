@@ -1200,7 +1200,8 @@
   function renderNeeds() {
     const p = potty >= 100 ? "🚽 😖 MUST GO!" : potty >= 75 ? "🚽 😣 need to go!" : potty >= 45 ? "🚽 😐" : "🚽 🙂";
     const e = energy <= 15 ? "😴 so sleepy!" : energy <= 40 ? "🥱 tired" : "😊 awake";
-    $("needs").textContent = `${p}  ${e}`;
+    const t = `${p}  ${e}`;
+    if ($("needs").dataset.t !== t) { $("needs").dataset.t = t; $("needs").textContent = t; } // only when it changes
     $("needs").className = potty >= 75 || energy <= 15 ? "urgent" : "";
   }
   function fallAsleep() {

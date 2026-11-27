@@ -141,6 +141,9 @@ You start with nothing: just an old backpack and a bench in the park. Can you be
 - **🐾 Pets**: adopt a 🐶 dog or a 🐱 cat at the Pet Shop on Home Lane. Your pet follows you everywhere! Buy 🦴 dog food or 🐟 cat food, and a 🎾 toy. They go in your backpack, so you can feed your pet and play with it. Your pet tells you when it's hungry or bored.
 - **Win**: check the 🏆 Richest list at the 🏛️ Town Hall. Get to #1!
 
+## Emojis
+All the games show the same emoji pictures on every computer, iPad and phone. They come from [Twemoji](https://github.com/jdecked/twemoji) (CC-BY 4.0). The good witch has her own picture (`assets/witch.svg`), based on Twemoji, with long brown hair and a blue headband. The code that does this is in `js/emoji.js`.
+
 ## Play on your computer
 Open `index.html` in a web browser. You don't need to install anything.
 

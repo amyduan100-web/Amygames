@@ -1118,6 +1118,9 @@
     return x > cam.x - pad && x < cam.x + W + pad && y > cam.y - pad && y < cam.y + H + pad;
   }
   function drawEmoji(ch, x, y, size) {
+    // Draw the same emoji picture on every device (see js/emoji.js), or the device's own emoji until it loads
+    const pic = window.AmyEmoji && window.AmyEmoji.image(ch);
+    if (pic) { ctx.drawImage(pic, x - size / 2, y - size / 2, size, size); return; }
     ctx.font = `${Math.round(size)}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1672,20 +1675,26 @@
     return `📜 ${ms.emoji} ${label}: ${missionProgress(ms.id)}/${ms.need} on ${home.name}`;
   }
 
+  // Only change text when it's different (so the emoji pictures don't get rebuilt every frame)
+  function setText(id, t) {
+    const el = $(id);
+    t = String(t);
+    if (el.dataset.t !== t) { el.dataset.t = t; el.textContent = t; }
+  }
   function updateHud() {
     if (!witch) return;
     const h = Math.max(0, witch.hearts);
-    $("hearts").textContent = "❤️".repeat(h) + "🖤".repeat(Math.max(0, witch.maxHearts - h));
-    $("coins").textContent = coins;
-    $("ammo").textContent = `💫 ${ammo}/${MAX_AMMO}`;
+    setText("hearts", "❤️".repeat(h) + "🖤".repeat(Math.max(0, witch.maxHearts - h)));
+    setText("coins", coins);
+    setText("ammo", `💫 ${ammo}/${MAX_AMMO}`);
     $("ammo").className = ammo <= 0 ? "empty" : ammo <= 5 ? "low" : "";
     $("potions").textContent = potions;
     $("potionBtn").disabled = potions <= 0;
     $("found").textContent = learned.size;
-    $("dayLabel").textContent = `${isNight() ? "🌙 Night" : "☀️ Day"} ${day}`;
+    setText("dayLabel", `${isNight() ? "🌙 Night" : "☀️ Day"} ${day}`);
     const q = questText();
     const ql = $("questLine");
-    if (ql.textContent !== q) ql.textContent = q;
+    if (ql.dataset.q !== q) { ql.dataset.q = q; ql.textContent = q; } // (emojis become pictures, so remember the text)
     ql.hidden = !q || state !== "play";
     const sig = SPELL_ORDER.map((k) => Math.ceil(Math.max(0, cool[k] || 0))).join(",");
     if (sig !== shownCool) { shownCool = sig; buildSpellButtons(); }
@@ -2311,12 +2320,12 @@
     }
     // The witch writes the password in her notebook, then it flies up to the 📓 button
     $("leaveMasterBtn").hidden = true;
-    const note = $("masterNote").textContent;
+    const note = $("masterNote").innerHTML; // (innerHTML keeps the emoji pictures)
     $("masterNote").textContent = "✏️ Writing it in the notebook...";
     buildSpellButtons();
     puff(witch.x, witch.y, "#ffe066", 40);
     writeInNotebook(spell, () => {
-      $("masterNote").textContent = note + " 📓 Saved in your notebook!";
+      $("masterNote").innerHTML = note + " 📓 Saved in your notebook!";
       $("leaveMasterBtn").hidden = false;
     });
   }
