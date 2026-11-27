@@ -2133,7 +2133,7 @@
       btn.hidden = true;
     } else {
       $("masterText").textContent = ms.thanks;
-      btn.textContent = "Start the lesson ✨";
+      btn.textContent = "Learn ✨";
       btn.hidden = false;
       btn.onclick = startLesson;
     }
@@ -2283,20 +2283,10 @@
     const sp = SPELLS[ms.spell];
     $("learnBtn").hidden = true;
     $("leaveMasterBtn").hidden = true;
-    lesson = { spell: ms.spell, phase: "pick", input: [] };
-    $("masterText").textContent = `${ms.emoji} "Which power do you want to learn? Click it!"`;
-    // The spell card becomes a big button to click
-    const rows = $("masterRows");
-    rows.innerHTML = `<div class="row pick" role="button" tabindex="0"><div class="ico">${sp.icon}</div><div class="info"><div class="name">${sp.name} 👆</div><div class="desc">${sp.desc}</div></div></div>`;
-    const card = rows.firstChild;
-    const pick = () => {
-      if (!lesson || lesson.phase !== "pick") return;
-      card.classList.remove("pick");
-      $("masterText").textContent = `${ms.emoji} "Here is the secret password for ${sp.icon} ${sp.name}. Watch, then do it back!"`;
-      beginWatch();
-    };
-    card.addEventListener("click", pick);
-    card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") pick(); });
+    // Each master teaches just one spell, so go straight to the password
+    lesson = { spell: ms.spell, phase: "watch", input: [] };
+    $("masterText").textContent = `${ms.emoji} "Here is the secret password for ${sp.icon} ${sp.name}. Watch, then do it back!"`;
+    beginWatch();
   }
   function finishLesson() {
     const who = talkingTo;

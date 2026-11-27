@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Richest</title>
+  <meta name="description" content="Start with nothing on a park bench. Get jobs, buy homes and businesses, and become the richest person in town.">
+  <style>
+    :root {
+      --bg: #10241c;
+      --panel: #fffaf0;
+      --panel-ink: #2d2a1e;
+      --muted-ink: #776f55;
+      --text: #f4fff8;
+      --muted: #b7d8c6;
+      --accent: #3fae7a;
+      --gold: #ffd257;
+      --good: #4cc38a;
+      --bad: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh; -webkit-user-select: none; user-select: none;
+    }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    [hidden] { display: none !important; }
+
+    /* Top bar */
+    .hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; background: rgba(0,0,0,0.3); font-weight: 700; }
+    .hud .grow { flex: 1; }
+    .hud-btn {
+      background: rgba(255,255,255,0.1); color: var(--text); text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 6px 12px; font-size: 14px;
+    }
+    .hud-btn:hover { background: rgba(255,255,255,0.2); }
+    .coins { color: var(--gold); }
+    .rank { color: #ffe9a8; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 12px 16px 32px; display: grid; gap: 10px; }
+
+    /* Needs bars */
+    .needs { display: flex; gap: 10px; flex-wrap: wrap; font-size: 14px; font-weight: 700; }
+    .need { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 999px; }
+    .bar { width: 80px; height: 10px; background: rgba(255,255,255,0.15); border-radius: 999px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 100%; background: var(--good); transition: width 0.3s; }
+    .need.low { animation: bump 0.8s ease-in-out infinite; }
+    @keyframes bump { 50% { transform: scale(1.08); } }
+    .bag-btn { border: 2px solid #ffd257; color: var(--text); font-weight: 800; font-size: 14px; }
+    .bag-btn:hover { background: rgba(255,210,87,0.25); }
+    .msg { min-height: 1.4em; font-weight: 700; color: #fff3c4; }
+
+    /* The town map */
+    .town {
+      position: relative; height: 470px; border-radius: 18px; overflow: hidden; cursor: pointer;
+      border: 6px solid #2f5d3f;
+      background:
+        linear-gradient(90deg, transparent 32%, #8d8d8d 32% 36%, transparent 36% 65%, #8d8d8d 65% 69%, transparent 69%),
+        linear-gradient(transparent 36%, #8d8d8d 36% 41%, transparent 41% 72%, #8d8d8d 72% 77%, transparent 77%),
+        #7cc47a;
+      transition: filter 1s;
+    }
+    @media (max-width: 600px) { .town { height: 430px; } }
+    .town.evening, .street.evening { filter: brightness(0.85) sepia(0.25); }
+    .town.night, .street.night { filter: brightness(0.55) saturate(0.7); }
+    /* City map blocks */
+    .block {
+      position: absolute; border-radius: 16px; border: 3px solid rgba(0,0,0,0.12); padding: 6px;
+      background: #8fd68a; color: #23452a; font-weight: 800; font-size: 13px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08);
+    }
+    .block:hover { border-color: #fff; background: #a3e09e; }
+    .block .icons { font-size: 30px; letter-spacing: 4px; }
+    .block .cans-here { font-size: 11px; color: #4b6b3c; }
+    .block.here { border-color: #ffd257; }
+    .block.mine { box-shadow: 0 0 12px rgba(255,210,87,0.9), inset 0 -6px 0 rgba(0,0,0,0.08); }
+    @media (max-width: 600px) { .block { font-size: 10px; } .block .icons { font-size: 20px; letter-spacing: 1px; } }
+    .car-deco { position: absolute; font-size: 22px; pointer-events: none; z-index: 2; }
+
+    /* A street you walk around in */
+    .street {
+      position: relative; height: 470px; border-radius: 18px; overflow: hidden; cursor: pointer;
+      border: 6px solid #2f5d3f;
+      /* little streets: one going across, one going up and down */
+      background:
+        linear-gradient(90deg, transparent 45%, #8d8d8d 45% 55%, transparent 55%),
+        linear-gradient(transparent 58%, #8d8d8d 58% 68%, transparent 68%),
+        #86cf7f;
+      transition: filter 1s;
+    }
+    @media (max-width: 600px) { .street { height: 430px; } }
+    .street .lane { position: absolute; left: 0; right: 0; top: 86%; height: 4px;
+      background: repeating-linear-gradient(90deg, #ffe066 0 30px, transparent 30px 60px); pointer-events: none; }
+    .street .building {
+      position: absolute; transform: translate(-50%, -50%); width: 150px; padding: 8px 6px 10px; text-align: center;
+      background: #fff6e0; border: 3px solid #b48a5a; border-radius: 14px 14px 6px 6px; color: #3d2b16; font-weight: 800;
+      box-shadow: 0 6px 0 #8a6236; z-index: 2;
+    }
+    .street .building .ico { display: block; font-size: 54px; line-height: 1.1; }
+    .street .building:hover { background: #fff; border-color: var(--accent); }
+    .street .building.mine { border-color: var(--gold); box-shadow: 0 6px 0 #c49a1e, 0 0 14px rgba(255,210,87,0.9); }
+    .street .building.myjob { border-color: var(--accent); box-shadow: 0 6px 0 #2a7d56, 0 0 14px rgba(63,174,122,0.9); }
+    @media (max-width: 600px) { .street .building { width: 112px; font-size: 12px; } .street .building .ico { font-size: 40px; } }
+    .street .deco { position: absolute; transform: translate(-50%, -50%); font-size: 34px; pointer-events: none; z-index: 1; }
+    .street .can { position: absolute; transform: translate(-50%, -50%) rotate(-25deg); font-size: 22px; background: none; border: 0; padding: 4px; z-index: 3; }
+    .street .can:hover { transform: translate(-50%, -50%) rotate(-25deg) scale(1.3); }
+    .street .can.flying { transition: left 0.7s ease-out, top 0.7s cubic-bezier(.3,-0.9,.6,1), transform 0.7s; transform: translate(-50%, -50%) rotate(340deg); pointer-events: none; }
+    .street .npc { position: absolute; transform: translate(-50%, -70%); font-size: 32px; pointer-events: none; z-index: 4; }
+    .street .npc.right { transform: translate(-50%, -70%) scaleX(-1); }
+    .street .npc-say { position: absolute; transform: translate(-50%, -100%); font-size: 12px; font-weight: 800; background: #fff; color: #333;
+      border-radius: 8px; padding: 2px 6px; pointer-events: none; z-index: 6; white-space: nowrap; }
+    .street .block-name { position: absolute; right: 10px; top: 8px; background: rgba(0,0,0,0.45); color: #fff; font-weight: 800;
+      padding: 4px 10px; border-radius: 999px; z-index: 6; pointer-events: none; font-size: 14px; }
+    /* Inside your home: rooms with things to click */
+    .house { position: relative; height: 470px; border-radius: 18px; overflow: hidden; cursor: pointer;
+      border: 6px solid #6b4a2b; background: #c89b6d; transition: filter 1s; }
+    @media (max-width: 600px) { .house { height: 430px; } }
+    .house.evening { filter: brightness(0.9) sepia(0.2); }
+    .house.night { filter: brightness(0.7) saturate(0.8); }
+    .house .hroom { position: absolute; border: 3px solid #6b4a2b; }
+    .house .hroom small { position: absolute; left: 6px; top: 4px; font-weight: 800; font-size: 12px; color: rgba(0,0,0,0.5); }
+    .house .thing {
+      position: absolute; transform: translate(-50%, -50%); background: none; border: 0; padding: 2px; line-height: 1;
+      font-size: 44px; z-index: 2; transition: transform 0.12s; display: flex; flex-direction: column; align-items: center;
+    }
+    .house .thing small { font-size: 11px; font-weight: 800; color: #3d2b16; background: rgba(255,255,255,0.75); border-radius: 6px; padding: 1px 5px; margin-top: 2px; }
+    .house .thing:hover { transform: translate(-50%, -50%) scale(1.15); }
+    .house .thing.playing { animation: wiggle 0.5s ease-in-out 2; }
+    @keyframes wiggle { 25% { transform: translate(-50%, -50%) rotate(-12deg) scale(1.15); } 75% { transform: translate(-50%, -50%) rotate(12deg) scale(1.15); } }
+    .house .thing.door { font-size: 34px; z-index: 3; }
+    @media (max-width: 600px) { .house .thing { font-size: 34px; } }
+    .map-btn { position: absolute; left: 10px; top: 8px; z-index: 6; border: 0; border-radius: 999px; padding: 7px 12px;
+      background: #2f5d3f; color: #fff; font-weight: 800; box-shadow: 0 3px 0 #1b3a26; }
+    .map-btn:hover { filter: brightness(1.15); }
+    .place {
+      position: absolute; transform: translate(-50%, -50%); text-align: center; width: 92px;
+      background: rgba(255,255,255,0.85); color: #2d2a1e; border: 2px solid rgba(0,0,0,0.15);
+      border-radius: 12px; padding: 4px 2px; font-size: 11px; font-weight: 800; line-height: 1.15;
+    }
+    .place .ico { display: block; font-size: 26px; }
+    .place:hover { background: #fff; border-color: var(--accent); }
+    .place.mine { border-color: var(--gold); box-shadow: 0 0 10px rgba(255,210,87,0.9); }
+    .place.myjob { border-color: #3fae7a; box-shadow: 0 0 10px rgba(63,174,122,0.9); }
+    @media (max-width: 600px) { .place { width: 66px; font-size: 9px; } .place .ico { font-size: 20px; } }
+    .me {
+      position: absolute; transform: translate(-50%, -70%); font-size: 36px; line-height: 1; z-index: 5;
+      pointer-events: none; filter: drop-shadow(0 0 6px rgba(255,255,255,0.9));
+    }
+    /* the kid sits on top, and the bike or car is right under them */
+    .me { display: flex; flex-direction: column-reverse; align-items: center; }
+    .me .kid { position: relative; z-index: 1; }
+    .me .ride { font-size: 34px; margin-top: -20px; }
+    .me .pet { position: absolute; left: 85%; bottom: 0; font-size: 24px; }
+    .me.sleeping { transform: translate(-50%, -40%) rotate(-90deg); }
+    .zzz { position: absolute; z-index: 6; pointer-events: none; font-size: 20px; animation: floatup 2s ease-out infinite; }
+    @keyframes floatup { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(14px, -40px); opacity: 0; } }
+    .goal { position: absolute; transform: translate(-50%, -50%); font-size: 16px; pointer-events: none; opacity: 0.8; z-index: 4; }
+    .float { position: absolute; transform: translate(-50%, -50%); z-index: 7; pointer-events: none; font-weight: 900; color: var(--gold);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6); animation: floatup 1.6s ease-out forwards; font-size: 18px; }
+
+    /* Pop-ups */
+    .overlay { position: fixed; inset: 0; background: rgba(5,15,10,0.6); display: flex; overflow-y: auto; padding: 16px; z-index: 20; }
+    .panel {
+      margin: auto; background: var(--panel); color: var(--panel-ink); border-radius: 18px; padding: 18px 20px;
+      width: min(520px, 100%); box-shadow: 0 16px 40px rgba(0,0,0,0.5); text-align: center;
+    }
+    .panel h1 { margin: 4px 0 8px; font-size: 1.5rem; }
+    .panel p { line-height: 1.45; }
+    .panel .big { font-size: 46px; }
+    .panel ul { text-align: left; line-height: 1.5; padding-left: 20px; }
+    .big-btn {
+      display: block; width: 100%; margin-top: 8px; padding: 11px 14px; border: 0; border-radius: 12px;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 1rem;
+    }
+    .big-btn:hover:not(:disabled) { filter: brightness(1.08); }
+    .big-btn:disabled { background: #c9c2ad; color: #f6f2e6; }
+    .big-btn.quiet { background: #e9e2cd; color: var(--panel-ink); }
+    .rows { display: grid; gap: 8px; margin-top: 10px; text-align: left; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #f3ecd8; border-radius: 12px; }
+    .row .ico { font-size: 28px; width: 36px; text-align: center; }
+    .row .txt { flex: 1; font-size: 14px; }
+    .row .txt b { display: block; font-size: 15px; }
+    .row button { border: 0; border-radius: 10px; padding: 8px 12px; background: var(--accent); color: #fff; font-weight: 800; white-space: nowrap; }
+    .row button:disabled { background: #c9c2ad; }
+    .note { color: var(--muted-ink); font-weight: 700; min-height: 1.3em; }
+    .section-title { font-weight: 800; margin-top: 6px; }
+
+    /* Work mini-games */
+    .work-field { position: relative; height: 260px; border-radius: 14px; overflow: hidden; background: #d9efe0; margin-top: 8px; }
+    .work-field .target {
+      position: absolute; transform: translate(-50%, -50%); font-size: 36px; background: none; border: 0; padding: 0;
+      animation: pop 0.25s ease-out;
+    }
+    @keyframes pop { from { transform: translate(-50%, -50%) scale(0.2); } }
+    .work-field .bg { position: absolute; inset: 0; display: grid; place-items: center; font-size: 150px; opacity: 0.9; pointer-events: none; }
+    .work-top { display: flex; justify-content: space-between; font-weight: 800; margin-top: 6px; }
+    .order { font-size: 1.15rem; font-weight: 800; margin: 10px 0; min-height: 2.6em; }
+    .picks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .picks button { font-size: 34px; padding: 10px 0; border-radius: 12px; border: 2px solid #e2d8bd; background: #fff; }
+    .picks button small { display: block; font-size: 11px; font-weight: 700; color: var(--muted-ink); }
+    .picks button.right { background: #c9f3dc; border-color: var(--good); }
+    .picks button.wrong { background: #ffd6d6; border-color: var(--bad); }
+    .timebar { height: 10px; background: #e7dfc8; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+    .timebar i { display: block; height: 100%; background: var(--accent); width: 100%; }
+
+    /* Richest list */
+    .rich-row { display: flex; gap: 10px; padding: 6px 10px; border-radius: 10px; background: #f3ecd8; font-weight: 700; }
+    .rich-row.you { background: #ffe9a8; border: 2px solid var(--gold); }
+    .rich-row .n { width: 28px; }
+    .rich-row .w { margin-left: auto; color: #8a6a00; }
+  </style>
+</head>
+<body>
+  <header class="hud">
+    <a class="hud-btn" href="../../index.html">← Games</a>
+    <span>🌆 Richest</span>
+    <span id="dayLabel">Day 1</span>
+    <span id="clock">7:00</span>
+    <span class="grow"></span>
+    <span class="coins">💰 <span id="coins">0</span></span>
+    <span class="rank" id="rank">🏆 #11</span>
+  </header>
+
+  <main>
+    <div class="needs">
+      <span class="need" id="needHunger">🍞 <span class="bar"><i id="barHunger"></i></span><span id="fullIcon"></span></span>
+      <span class="need" id="needEnergy">😴 <span class="bar"><i id="barEnergy"></i></span></span>
+      <span class="need" id="needClean">🧼 <span class="bar"><i id="barClean"></i></span></span>
+      <span class="need" id="needPet" hidden><span id="petIcon">🐶</span> <span class="bar"><i id="barPet"></i></span><span id="petFun">💛</span></span>
+      <button class="need bag-btn" id="bag" type="button">🎒 Backpack (0)</button>
+      <span class="need" id="jobLabel">💼 No job yet</span>
+    </div>
+    <div class="msg" id="msg"></div>
+    <div class="town" id="town"></div>
+    <div class="street" id="street" hidden></div>
+    <div class="house" id="house" hidden></div>
+  </main>
+
+  <!-- Story at the start -->
+  <div class="overlay" id="startScreen">
+    <div class="panel">
+      <div class="big">🎒🌳🌆</div>
+      <h1>Richest</h1>
+      <p>You have nothing but an old backpack. You sleep on a bench in the park. But you have a big dream: <b>to become the richest person in town!</b></p>
+      <ul>
+        <li>The 🗺️ <b>city map</b> shows all the blocks. Click a block to go there.</li>
+        <li>Each block has its own little streets. <b>Click anywhere</b> to walk, and click a building to go inside.</li>
+        <li>Look for cans 🥫 on the street corners. People toss them on the ground! Pick them up and bring them to ♻️ Recycling for 💰1 each.</li>
+        <li>Go to the 💼 Job Center to choose a job. Better jobs need school 🎓, a bike 🚲 or a shower 🚿 first.</li>
+        <li>🍞 Hungry? Buy food, or if you have no money, the 🥫 Food Bank helps you for free. If you get too hungry, you go there on your own.</li>
+        <li>😴 Too tired? You just lie down wherever you are and sleep. Buy a home 🏠 to sleep in a real bed!</li>
+        <li>Buy homes, a car and businesses, and climb the 🏆 Richest list at the 🏛️ Town Hall until you're #1!</li>
+      </ul>
+      <button class="big-btn" id="continueBtn" type="button" hidden>Continue my game ▶</button>
+      <button class="big-btn" id="newGameBtn" type="button">Start with nothing 🎒</button>
+    </div>
+  </div>
+
+  <!-- Inside a place -->
+  <div class="overlay" id="placeScreen" hidden>
+    <div class="panel">
+      <div class="big" id="placeArt"></div>
+      <h1 id="placeTitle"></h1>
+      <p id="placeText"></p>
+      <div class="rows" id="placeRows"></div>
+      <p class="note" id="placeNote"></p>
+      <button class="big-btn quiet" id="leaveBtn" type="button">Back to town 🚶</button>
+    </div>
+  </div>
+
+  <!-- Your backpack -->
+  <div class="overlay" id="bagScreen" hidden>
+    <div class="panel">
+      <div class="big">🎒</div>
+      <h1>My Backpack</h1>
+      <div class="rows" id="bagRows"></div>
+      <p class="note" id="bagNote"></p>
+      <button class="big-btn quiet" id="closeBagBtn" type="button">Close backpack</button>
+    </div>
+  </div>
+
+  <!-- Working -->
+  <div class="overlay" id="workScreen" hidden>
+    <div class="panel">
+      <h1 id="workTitle"></h1>
+      <div id="workHelp" class="note"></div>
+      <div class="work-top"><span id="workTime">⏱️ 30</span><span id="workPay" class="coins">💰 0</span></div>
+      <div class="timebar"><i id="workBar"></i></div>
+      <div id="workArea"></div>
+      <button class="big-btn quiet" id="stopWorkBtn" type="button">Stop working early</button>
+    </div>
+  </div>
+
+  <!-- Messages: food bank, sleeping, new day... -->
+  <div class="overlay" id="infoScreen" hidden>
+    <div class="panel">
+      <div class="big" id="infoArt"></div>
+      <h1 id="infoTitle"></h1>
+      <p id="infoText"></p>
+      <button class="big-btn" id="infoBtn" type="button">OK</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
